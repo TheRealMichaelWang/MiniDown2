@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MiniDown": {
+      "commandName": "Project",
+      "commandLineArgs": "tests/prompt.txt"
+    }
+  }
+}

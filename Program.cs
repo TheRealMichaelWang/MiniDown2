@@ -19,16 +19,14 @@ namespace MiniDown
 
             string source = File.ReadAllText(args[0]);
 
-            try
-            {
+            //try
+            //{
                 List<IAstElement> miniDownElems = Parsing.Parser.ParseMinidown(source);
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.Message);
-            }
-
-
+            //}
+            //catch(Exception e)
+            //{
+              //  Console.WriteLine(e.Message);
+            //}
         }
     }
 }

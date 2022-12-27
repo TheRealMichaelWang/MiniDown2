@@ -53,6 +53,7 @@ namespace MiniDown.Parsing
                     case TokenType.Space:
                     case TokenType.Bullet:
                         currentSnippet.Append(scanner.LastToken.Char);
+                        scanner.ScanToken();
                         break;
                     case TokenType.Backtick:
                         scanner.ScanToken();
@@ -70,12 +71,19 @@ namespace MiniDown.Parsing
                         else if (currentSnippet.Length > 0)
                         {
                             scanner.ScanToken();
-                            elements.Append(new TextSnippet(currentSnippet.ToString()));
+                            elements.Add(new TextSnippet(currentSnippet.ToString()));
                             currentSnippet.Clear();
                         }
                         return elements;
                     default:
-                        throw new UnexpectedTokenException(scanner.LastToken.Type, null);
+                        if (parsingInline)
+                        {
+                            currentSnippet.Append(scanner.LastToken.Char);
+                            scanner.ScanToken();
+                            break;
+                        }
+                        else
+                            throw new UnexpectedTokenException(scanner.LastToken.Type, null);
                 }
             }
         }
@@ -94,7 +102,7 @@ namespace MiniDown.Parsing
             {
                 elements.AddRange(ParseLine());
             }
-            while(scanner.LastToken.Type == TokenType.Newline);
+            while(scanner.LastToken.Type != TokenType.Newline && scanner.LastToken.Type != TokenType.Eof);
 
             Debug.Assert(elements.Count > 0);
             return new Paragraph(elements);
@@ -158,15 +166,6 @@ namespace MiniDown.Parsing
             List<string> lines = new();
             while (true) 
             {
-                StringBuilder line = new();
-                do
-                {
-                    line.Append(scanner.LastToken.Char);
-                    scanner.ScanToken();
-                }
-                while (scanner.LastToken.Type == TokenType.Newline);
-                lines.Add(line.ToString());
-
                 if(scanner.LastToken.Type == TokenType.Backtick)
                 {
                     MatchAndScan(TokenType.Backtick);
@@ -175,6 +174,16 @@ namespace MiniDown.Parsing
                     MatchAndScan(TokenType.Newline);
                     return new CodeBlock(lines);
                 }
+
+                StringBuilder line = new();
+                do
+                {
+                    line.Append(scanner.LastToken.Char);
+                    scanner.ScanToken();
+                }
+                while (scanner.LastToken.Type != TokenType.Newline);
+                lines.Add(line.ToString());
+                scanner.ScanToken();
             }
         }
 
