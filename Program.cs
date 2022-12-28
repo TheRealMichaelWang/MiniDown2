@@ -23,8 +23,12 @@ namespace MiniDown
             try
             {
                 List<IAstElement> miniDownElems = Parsing.Parser.ParseMinidown(source);
+                
                 StringBuilder output = new();
-                output.AppendLine($"Rendered by Michael Wang on {DateTime.Now.ToShortDateString()}.");
+
+                if (args.Contains("date"))
+                    output.AppendLine($"Rendered by Michael Wang on {DateTime.Now.ToShortDateString()}.");
+
                 miniDownElems.ForEach((elem) => elem.EmitHTML(output));
                 File.WriteAllText("out.html", output.ToString());
             }
