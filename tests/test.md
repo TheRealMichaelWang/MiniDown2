@@ -2,6 +2,11 @@
     <h1> Look, html thats not supposed to be here! Somehow, it must've escaped!</h1>
 </html>
 
+```
+<html>
+    <h1> Look, html thats not supposed to be here! Somehow, it must've escaped!</h1>
+</html>
+```
 
 # Heading1
 ## Heading2
@@ -13,6 +18,10 @@
 * I love multiline bullet point elements
 I love multiline bullet point elements
 * I love `inline code`
+ * I love paragraphs that start with asterisks
+*I love paragraphs that start with asterisks
+
+I love paragaphs with * asterisks
 
 I love long multiline
 paragraphs. They make me
