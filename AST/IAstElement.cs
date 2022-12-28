@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiniDown.AST
 {
-    public interface IAstElement
+    public partial interface IAstElement
     {
 
     }

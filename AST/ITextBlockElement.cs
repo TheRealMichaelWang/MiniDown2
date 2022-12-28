@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MiniDown.AST
 {
-    public interface ITextBlockElement
+    public partial interface ITextBlockElement
     {
 
     }

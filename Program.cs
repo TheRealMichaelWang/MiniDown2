@@ -1,4 +1,5 @@
 ﻿using MiniDown.AST;
+using System.Text;
 
 namespace MiniDown
 {
@@ -19,14 +20,17 @@ namespace MiniDown
 
             string source = File.ReadAllText(args[0]);
 
-            //try
-            //{
+            try
+            {
                 List<IAstElement> miniDownElems = Parsing.Parser.ParseMinidown(source);
-            //}
-            //catch(Exception e)
-            //{
-              //  Console.WriteLine(e.Message);
-            //}
+                StringBuilder output = new();
+                miniDownElems.ForEach((elem) => elem.EmitHTML(output));
+                File.WriteAllText("out.html", output.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
         }
     }
 }
