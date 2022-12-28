@@ -1,0 +1,189 @@
+Rendered by Michael Wang on 12/27/2022.
+<h1>Minidown Parser </h1>
+<p>In this exercise, we&#39;ll build a miniature Markdown-like parser for a made-up language called &quot;Minidown&quot;. </p>
+<p>Minidown is a format that allows: </p>
+<ul>
+	<li> Section headings, </li>
+	<li> Paragraph text, </li>
+	<li> Inline code, </li>
+	<li> Displayed code, and </li>
+	<li> Bulleted lists. </li>
+</ul>
+<p>For this exercise, you are not permitted to use a tools that generate parsing code (e.g., parser generators like yacc, bison, or ANTLR), or libraries that deal with Markdown or Markdown-derivatives. If you please, you may use other libraries that may be helpful (e.g., regex, string-manipulation libraries). They are, however, not required for this exercise. See the section &quot;Meta-requirements&quot; for additional details. </p>
+<h2>Goal 1: Parsing Minidown </h2>
+<p>The first goal is to parse Minidown. Write a function </p>
+<pre>
+	read_minidown_file(path)
+</pre>
+<p>which reads a Minidown file at the given path, and produces a representation of the Minidown of your choice. It will be useful to read the remaining goals to understand what we will want to do with this representation. </p>
+<p>The following sections describe the format. </p>
+<h3>Documents </h3>
+<p>A Minidown file will be a sequence of section headings, paragraphs, bulleted lists, and displayed code blocks. </p>
+<h3>Paragraphs </h3>
+<p>A paragraph is almost any sequence of text, possibly containing inline code (see below for a description of inline code). Other components of a document are the only exceptions to what a paragraph is. </p>
+<p>A single newline character does not break the sequence of text and is interpreted as a space. </p>
+<p>Two newline characters delimit two paragraphs. </p>
+<p>The following are five example paragraphs: </p>
+<pre>
+	|Hello, world!
+	|
+	|This is a paragraph with the sentence
+	|broken into two lines.
+	|
+	| This is a paragraph with a space at the
+	|beginning.
+	|
+	| *This is a paragraph that was probably
+	|meant to be a bulleted list, but has
+	|incorrect formatting.
+	|
+	|This is a paragraph with `code` embedded.
+</pre>
+<h3>Section headings </h3>
+<p>Section headings are represented by lines that begin with a <code>#</code> character, followed by a space, followed optionally by additional other text. The space is required. </p>
+<p>Multple <code>#</code> can be used to denote subsections. There can be a maximum of six <code>#</code> characters to denote a sixth-level heading. Additional levels are interpreted as paragraph text. </p>
+<p>These are three example section headings: </p>
+<pre>
+	|# This is a first section heading
+	|
+	|## This is a subsection heading
+	|### This is a subsubsection heading; new newline needed
+</pre>
+<p>Note that the following would all render as elements of a paragraph </p>
+<pre>
+	|#Missing leading space
+	|##
+	| ### The last heading also didn&#39;t have a space, and this heading has a preceding space.
+	|####### Headings can have up to 6 # marks
+</pre>
+<h3>Inline code </h3>
+<p>Inline code can be a part of paragraphs, section headings, and bulleted lists. Inline code is any text written surrounded with backticks. The exception is that it is an error if the text contains a newline or the end-of-file is reached. </p>
+<p>See the example in the section &quot;Example of inline and displayed code&quot;. </p>
+<h3>Displayed code </h3>
+<p>If a line begins with a triple-backtick followed by a newline, then it begins a block of displayed code. Characters are read literally until another triple-backtick is found with a following newline. </p>
+<p>Note that these rules around the triple-backtick are strict. If there is whitespace, or any other characters, before or after the triple-backtick, it is not considered a delimiter for a code block. So a file containing </p>
+<pre>
+	| ```
+	|foo
+	|```x
+</pre>
+<p>would be an error, since it would be interpreted as three pairs of backticks, and the second pair contains a newline. </p>
+<p>See the example in the section &quot;Example of inline and displayed code&quot;. </p>
+<h3>Example of inline and displayed code </h3>
+<p>The following example contains a variety of instances of code: </p>
+<ul>
+	<li> A section heading, which contains a piece of inline code. </li>
+	<li> A paragraph, which contains no inline code. </li>
+	<li> A block of displayed code </li>
+	<li> Another paragraph, which contains inline code. </li>
+</ul>
+<pre>
+	|# Declarations with `void` return values
+	|
+	|Consider the following example function declaration:
+	|
+	|```
+	|void f(char x);
+	|```
+	|
+	|It declares that `f` takes a `char` and returns nothing.
+</pre>
+<h3>Bulleted lists </h3>
+<p>Bulleted lists are denoted by a single <code>*</code> character in the leftmost column of the file followed by a space. </p>
+<p>Each subsequent list element separated by a single newline. If there is a single newline but the next character isn&#39;t a <code>*</code>, then it is interpreted as a continuation of the previous bullet point. </p>
+<p>Two newlines, or the end-of-file, ends the bulleted list. </p>
+<p>If there are any characters on a line before the <code>*</code> (i.e., it is not in the leftmost column), it is interpreted literally. </p>
+<p>If there isn&#39;t a space immediately after the <code>*</code>, it is interpreted literally. </p>
+<p>For example, the following is a valid bulleted list of two elements </p>
+<pre>
+	|* Hello
+	|world!
+	|* Goodbye world!
+	| * (wait, this isn&#39;t a third bullet!)
+	|*and neither is this!
+</pre>
+<p>It renders as </p>
+<ul>
+	<li> Hello world! </li>
+	<li> Goodbye world!  * (wait, this isn&#39;t a third bullet!) </li>
+</ul>
+<p>*and neither is this!  </p>
+<h2>Goal 2: Render as HTML </h2>
+<p>Write a function </p>
+<pre>
+	emit_minidown_as_html(x, output)
+</pre>
+<p>which writes an object <code>x</code> (produced by <code>read_minidown_file</code>) to <code>output</code>, which may be a stream and/or file. The HTML does not need to be formatted, minified, or pretty-printed. It is perfectly OK to use an HTML library for this part of the goal. </p>
+<p>A document should be produced as </p>
+<pre>
+	&lt;html&gt;
+	&lt;body&gt;
+	...
+	&lt;/body&gt;
+	&lt;/html&gt;
+</pre>
+<p>You may optionally include CSS via a <code>&lt;style&gt;</code> tag if preferred. </p>
+<p>A heading with a <code>level</code> of <code>X</code> should be produced as </p>
+<pre>
+	&lt;hX&gt; ... &lt;/hX&gt;
+</pre>
+<p>A paragraph should be produced as </p>
+<pre>
+	&lt;p&gt; ... &lt;/p&gt;
+</pre>
+<p>A <code>displayed-code</code> element should be produced as </p>
+<pre>
+	&lt;pre&gt;
+	...
+	&lt;/pre&gt;
+</pre>
+<p>An <code>inline-code</code> element should be produced as </p>
+<pre>
+	&lt;code&gt; ... &lt;/code&gt;
+</pre>
+<p>A bulleted list should be produced as <code>&lt;ul&gt; ... &lt;/ul&gt;</code>. Each bullet item should be produced as <code>&lt;li&gt; ... &lt;/li&gt;</code>.  So, for example, the bulleted list </p>
+<pre>
+	|* A
+	|* B
+	|* C
+</pre>
+<p>should be produced as </p>
+<pre>
+	&lt;ul&gt;
+	&lt;li&gt;A&lt;/li&gt;
+	&lt;li&gt;B&lt;/li&gt;
+	&lt;li&gt;C&lt;/li&gt;
+	&lt;/ul&gt;
+</pre>
+<p>In all HTML output, the following characters should be escaped everywhere: </p>
+<ul>
+	<li> <code>&amp;</code> becomes <code>&amp;amp;</code> </li>
+	<li> <code>&lt;</code> becomes <code>&amp;lt;</code> </li>
+	<li> <code>&gt;</code> becomes <code>&amp;gt;</code> </li>
+	<li> <code>&quot;</code> becomes <code>&amp;quot;</code> </li>
+	<li> <code>&#39;</code> becomes <code>&amp;#39;</code> </li>
+</ul>
+<h2>Goal 3: A test document </h2>
+<p>Produce a test document that contains all of the syntactic features of Minidown. Include as many corner cases as you see reasonable. Add this file to your submission as <code>test.md</code>. </p>
+<p>Produce HTML and render this in your browser. Print it as a PDF and submit it as <code>test.pdf</code>. </p>
+<h2>Goal 4: Render this document </h2>
+<p>Write </p>
+<pre>
+	Rendered by {your first and last name} on {date}.
+</pre>
+<p>at the very top of this document, produce HTML, and render it in your browser. Print it as a PDF and submit it as <code>exercise.pdf</code>. </p>
+<h2>Meta-requirements </h2>
+<ul>
+	<li> Terminology: Above, we have used programming terms like &quot;function,&quot;   &quot;type,&quot; &quot;constructor,&quot; etc. These terms are being used broadly, and   may be interpreted however you please in your programming   language. For example, something specified above to be a &quot;function&quot;   may be implemented in your programming language as a method,   procedure, subroutine, or otherwise. </li>
+	<li> Naming Conventions: You do not need to match the function and   variable names exactly. Please feel free to choose whichever names   you prefer and whichever names would be idiomatic in your   programming language. </li>
+	<li> Language: You code can be written in any language of your choice. We   prefer, but do not require, one of: C++, Python, or Common Lisp. If   it&#39;s not one of those, we&#39;d like instructions on how to run your   code as simply as possible. </li>
+	<li> Libraries: Feel free to use any easily-accessible libraries that are   utilitarian in nature. Do not use library functionality which   directly solves any of the challenges. (For example, in this   exercise, you&#39;re welcome to use an HTML library. However, you can&#39;t   use or crib from or repurpose a Markdown parsing library.) </li>
+	<li> Operating System: Your code should work on a UNIX system, like Linux   or macOS. If this is not feasible for you, please let us know ahead   of time. </li>
+	<li> Quality: We know that this is a take-home exercise, and time   constrains one&#39;s ability to make such a project fully robust. We ask   that you code to your usual standard, but if shortcuts shall be   made, to clearly mark them. </li>
+	<li> Version Control: Do as you would in an ordinary, professional   project. You may, if convenient, share a private GitHub repository   with us. </li>
+	<li> Testing: Do as you see fit, noting the flexibility of the &quot;quality&quot;   requirement above. </li>
+	<li> Documentation: Documentation should be done as you see fit, noting   the flexibility of the &quot;quality&quot; requirement above. </li>
+</ul>
+<p>The code you write is owned completely by you, and of course may be repurposed or used for anything you please. However, we humbly request that the code you write as it pertains to this exercise remains private so others have a fair chance. </p>
+<h2>Judgment criteria </h2>
+<p>You will be judged on overall software engineering quality, broad efficiency considerations (i.e., we are looking at big design choices, not micro-optimizations), and the extent to which your code satisfies the requirements outlined in this document. </p>
