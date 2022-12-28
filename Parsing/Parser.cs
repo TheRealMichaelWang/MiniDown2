@@ -1,10 +1,6 @@
 ﻿using MiniDown.AST;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace MiniDown.Parsing
 {
@@ -66,6 +62,7 @@ namespace MiniDown.Parsing
                         break;
                     case TokenType.Newline:
                     case TokenType.Eof:
+                        currentSnippet.Append(' ');
                         if (parsingInline)
                             throw new UnexpectedTokenException(scanner.LastToken.Type, TokenType.Backtick);
                         else if (currentSnippet.Length > 0)
@@ -125,14 +122,20 @@ namespace MiniDown.Parsing
         }
 
         //returns list of ast elements with a bulleted list (if parsing succeded), and maybe a paragraph where the bullet is interpreted literally
-        private IAstElement ParseBulletedList()
+        private List<IAstElement> ParseBulletedList()
         {
             List<BulletedList.BulletedItem> items = new();
             while(true)
             {
                 MatchAndScan(TokenType.Bullet);
                 if (scanner.LastToken.Type != TokenType.Space)
-                    return ParseParagraph(ParseLine('*'));
+                {
+                    List<IAstElement> toreturn = new();
+                    if (items.Count > 0)
+                        toreturn.Add(new BulletedList(items));
+                    toreturn.Add(ParseParagraph(ParseLine('*')));
+                    return toreturn;
+                }
 
                 List<ITextBlockElement> itemElements = ParseLine();
                 Debug.Assert(itemElements.Count > 0);
@@ -148,7 +151,7 @@ namespace MiniDown.Parsing
                     {
                         scanner.ScanToken();
                         items.Add(new(itemElements));
-                        return new BulletedList(items);
+                        return new List<IAstElement>() { new BulletedList(items) };
                     }
                     else
                         itemElements.AddRange(ParseLine());
@@ -201,7 +204,7 @@ namespace MiniDown.Parsing
                         elements.Add(ParseCodeBlock());
                         break;
                     case TokenType.Bullet:
-                        elements.Add(ParseBulletedList());
+                        elements.AddRange(ParseBulletedList());
                         break;
                     case TokenType.Newline:
                         scanner.ScanToken();

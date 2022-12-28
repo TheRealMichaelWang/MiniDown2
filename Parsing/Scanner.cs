@@ -10,9 +10,8 @@
         public Scanner(string source)
         {
             this.source = source;
-            this.position = 0;
+            position = 0;
 
-            ScanChar();
             ScanToken();
         }
 
@@ -25,7 +24,13 @@
 
         public Token ScanToken()
         {
-            char c = ScanChar();
+            char c;
+            do
+            {
+                c = ScanChar();
+            }
+            while (c == '\r');
+
             return LastToken = new Token(c switch
             {
                 ' ' => TokenType.Space,
