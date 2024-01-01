@@ -1,5 +1,5 @@
 # MiniDown2
-A small markup language.
+A small markup language made for the HRL interview.
 
 ## Requirements
 ### Goal 2
